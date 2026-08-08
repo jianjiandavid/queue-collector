@@ -1,0 +1,31 @@
+name: 排队数据定时采集
+
+on:
+  schedule:
+    # 每 15 分钟采集一次（UTC）。GitHub Actions 最短间隔为 5 分钟，
+    # 想更接近实时可改 '*/10 * * * *'；私有仓库注意免费额度，见下方说明。
+    - cron: '*/15 * * * *'
+  # 允许在 Actions 标签页手动点 "Run workflow" 立即测试一次
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Collect & push to server
+        env:
+          RELAY_SERVER: ${{ secrets.RELAY_SERVER }}
+          RELAY_TOKEN:  ${{ secrets.RELAY_TOKEN }}
+        run: python collect_push.py
